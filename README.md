@@ -1,1 +1,1 @@
-<img src="https://uptime.redboard.fr/api/badge/3/status?label=Discord" />
+<img src="https://uptime.redboard.fr/api/badge/3/status" />
