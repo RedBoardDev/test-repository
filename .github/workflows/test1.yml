@@ -15,12 +15,10 @@ jobs:
       uses: phips28/gh-action-bump-version@v10.0.1
       env:
         GITHUB_TOKEN: "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"
-        with:
-          path: './public/manifest.json' # Ajout du chemin vers le fichier
+      with:
+        path: './public/manifest.json' # Ajout du chemin vers le fichier
     - name: Commit & Push changes
       uses: Smart-Transportation/push@v1.3
       with:
         github_token: "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"
-        # Ajout du chemin vers le fichier dans le répertoire
-        directory: 'public'
-        # Ajout d'autres paramètres si nécessaire
+        directory: 'public' # Ajout du chemin vers le fichier dans le répertoire
