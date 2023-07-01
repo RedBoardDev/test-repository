@@ -38,6 +38,6 @@ jobs:
           body: "Changelog: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.prop }}"
           tag: ${{ steps.version.outputs.prop }}
           token: ${{ secrets.REPO_ACCESS }}
-          body: ./build/*
+          artifacts: ./build/*
           allowUpdates: true
           replacesArtifacts: true
