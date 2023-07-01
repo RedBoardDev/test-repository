@@ -11,13 +11,21 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Get Current Version
+        id: get_version
+        run: |
+          current_version=$(jq -r '.version' public/manifest.json)
+          echo "::set-output name=version::$current_version"
+
       - name: Increment Version
         id: increment_version
-        uses: jwalton/semver-action@v0.5.0
-        with:
-          version: ${{ steps.get_version.outputs.version }}
-          increment: patch
+        run: |
+          major=$(echo "${{ steps.get_version.outputs.version }}" | awk -F. '{print $1}')
+          minor=$(echo "${{ steps.get_version.outputs.version }}" | awk -F. '{print $2}')
+          patch=$(echo "${{ steps.get_version.outputs.version }}" | awk -F. '{print $3}')
+          new_version="$major.$minor.$((patch+1))"
+          echo "::set-output name=version::$new_version"
 
       - name: Update Version
         run: |
-          sed -i 's/"version": "[0-9]\+\.[0-9]\+\.[0-9]\+"/"version": "${{ steps.increment_version.outputs.version }}"/' public/manifest.json
+          sed -i 's/"version": "${{ steps.get_version.outputs.version }}"/"version": "${{ steps.increment_version.outputs.version }}"/' public/manifest.json
