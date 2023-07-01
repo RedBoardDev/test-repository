@@ -18,4 +18,4 @@ jobs:
         GITHUB_TOKEN: "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"
       with:
         path: './public'
-        filename: 'manifest.yml'
+        filename: 'manifest.json'
