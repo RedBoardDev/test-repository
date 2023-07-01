@@ -30,7 +30,7 @@ jobs:
         id: version
         uses: notiz-dev/github-action-json-property@release
         with:
-          path: 'manifest.json'
+          path: 'build/manifest.json'
           prop_path: 'version'
       - name: Create release
         uses: ncipollo/release-action@v1
