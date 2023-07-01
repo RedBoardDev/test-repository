@@ -17,5 +17,5 @@ jobs:
       env:
         GITHUB_TOKEN: "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"
       with:
-        path: './public'
+        path: 'public'
         filename: 'manifest.json'
