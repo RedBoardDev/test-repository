@@ -1,34 +1,44 @@
-name: Modify Version
-
+name: autorelease
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
-      - main
-
+      - master
 jobs:
-  modify_version:
+  build:
+    if: github.event.pull_request.merged == true && contains(toJSON(github.event.pull_request.labels.*.name), '"autorelease"')
     runs-on: ubuntu-latest
+    env:
+      manifest_file: 'manifest.yml'
+      changelog_file: 'CHANGELOG.md'
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Get Current Version
-        id: get_version
-        run: |
-          current_version=$(jq -r '.version' public/manifest.json)
-          echo "::set-output name=version::$current_version"
-
-      - name: Generate Changelog
-        uses: rubenfiszel/autochangelog-action@v0.16.0
+      - uses: actions/checkout@v2
         with:
-          release_tag: ${{ github.sha }}
-          output: CHANGELOG.md
-
-      - name: Increment Version
-        id: increment_version
+          ref: master
+      - name: get version
+        id: version
         run: |
-          new_version=$(awk -F '[= ]' '/^## /{print $2; exit}' CHANGELOG.md)
-          echo "::set-output name=version::$new_version"
-
-      - name: Update Version
+          sed -n 's/^version:\s\(.*\)$/\1/p' ${{ env.manifest_file }} \
+          | xargs -I {} echo "::set-output name=version::{}"
+      - name: get changelog
+        id: changelog
         run: |
-          sed -i "s/\"version\": \"${{ steps.get_version.outputs.version }}\"/\"version\": \"${{ steps.increment_version.outputs.version }}\"/" public/manifest.json
+          changelog=$(echo "${{ steps.version.outputs.version}}" \
+          | xargs -I {} sed -n '/^#\s'"{}"'.*$/,/^#\s\([^[:space:]]\+\).*$/{//!p}' ${{ env.changelog_file }})
+          echo $changelog
+          changelog="${changelog//'%'/'%25'}"
+          changelog="${changelog//$'\n'/'%0A'}"
+          changelog="${changelog//$'\r'/'%0D'}"
+          echo "::set-output name=changelog::$changelog"
+      - name: echo version and changelog
+        run: |
+          echo "${{ steps.version.outputs.version}}"
+          echo "${{ steps.changelog.outputs.changelog }}"
+      - name: Create Release
+        uses: ncipollo/release-action@v1.4.0
+        with:
+          name: ${{ steps.version.outputs.version }}
+          tag: v${{ steps.version.outputs.version }}
+          body: ${{ steps.changelog.outputs.changelog}}
+          draft: false
+          prerelease: false
