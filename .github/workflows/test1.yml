@@ -19,7 +19,7 @@ jobs:
         uses: rubenfiszel/autochangelog-action@v0.16.0
         with:
           changelog_file: './CHANGELOG.md'
-          manifest_file: './manifest.yaml'
+          manifest_file: './pulic/manifest.yaml'
           dry_run: false
           issues_url_prefix: 'https://github.com/org/repo/issues/'
           tag_prefix: 'v'
