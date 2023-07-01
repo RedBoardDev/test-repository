@@ -25,10 +25,9 @@ jobs:
         id: version
         run: echo "::set-output name=version::$(node -p 'require("./public/manifest.json").version')"
       - name: Create release zip
-        run: zip -r build.zip build/*
-      - name: Rename ZIP file
         run: |
-          mv build.zip extension-${{ steps.version.outputs.version }}.zip
+          cd build
+          zip -r ../extension-${{ steps.version.outputs.version }}.zip .
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
         with:
