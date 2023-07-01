@@ -24,8 +24,8 @@ jobs:
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: ./build
-          path: ./build/
+          name: build
+          path: build/
       - name: Get version
         id: version
         run: echo "::set-output name=version::$(node -p 'require("./public/manifest.json").version')"
@@ -35,6 +35,6 @@ jobs:
           body: "Changelog: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.version }}"
           tag: ${{ steps.version.outputs.version }}
           token: ${{ secrets.REPO_ACCESS }}
-          artifacts: ./build/
+          artifacts: build/
           allowUpdates: true
           replacesArtifacts: true
