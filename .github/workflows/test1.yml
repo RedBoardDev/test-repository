@@ -35,7 +35,6 @@ jobs:
           body: "Changelog: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.version }}"
           tag: ${{ steps.version.outputs.version }}
           token: ${{ secrets.REPO_ACCESS }}
-          assets: |
-            build/*
+          artifacts: ${{ github.workspace }}/build/
           allowUpdates: true
           replacesArtifacts: true
