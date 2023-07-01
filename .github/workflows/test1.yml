@@ -1,4 +1,4 @@
-name: Update Manifest Version
+name: Bump version on push to main
 
 on:
   push:
@@ -6,39 +6,16 @@ on:
       - main
 
 jobs:
-  update_version:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Get current version
-        id: get_version
-        run: echo "::set-output name=current_version::$(jq -r '.version' public/manifest.json)"
-
-      - name: Increment version
-        id: increment_version
-        run: |
-          current_version="${{ steps.get_version.outputs.current_version }}"
-          major=$(echo $current_version | cut -d'.' -f1)
-          minor=$(echo $current_version | cut -d'.' -f2)
-          patch=$(echo $current_version | cut -d'.' -f3)
-          next_version="$((major + 1)).0.0"
-          echo "::set-output name=next_version::$next_version"
-
-      - name: Update manifest version
-        run: |
-          next_version="${{ steps.increment_version.outputs.next_version }}"
-          jq --arg new_version "$next_version" '.version = $new_version' public/manifest.json > tmp_manifest.json
-          mv tmp_manifest.json public/manifest.json
-
-      - name: Commit and push changes
-        uses: EndBug/add-and-commit@v7
-        with:
-          author_name: "GitHub Actions"
-          author_email: "actions@github.com"
-          message: "Bump up manifest version to ${{ steps.increment_version.outputs.next_version }}"
-          add: "public/manifest.json"
-          force: true
-          push: true
+    - name: Automated Version Bump
+      uses: phips28/gh-action-bump-version@v10.0.1
+      env:
+        GITHUB_TOKEN: "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"
+      with:
+        path: './public'
+        filename: 'manifest.yml'
