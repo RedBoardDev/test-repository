@@ -16,28 +16,30 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14' # Choose the version of Node.js you want to use
+          node-version: '14'
       - name: Install dependencies
         run: npm install
       - name: Build
         run: npm run build
+      - name: Create release zip
+        uses: ncipollo/release-zip-action@v2
+        with:
+          files: build/
+          outputFileName: release.zip
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: build
-          path: build/
+          name: build-zip
+          path: release.zip
       - name: Get version
         id: version
-        uses: notiz-dev/github-action-json-property@release
-        with:
-          path: 'build/manifest.json'
-          prop_path: 'version'
+        run: echo "::set-output name=version::$(node -p 'require("./public/manifest.json").version')"
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          body: "Changelog: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.prop }}"
-          tag: ${{ steps.version.outputs.prop }}
+          body: "Changelog: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.version }}"
+          tag: ${{ steps.version.outputs.version }}
           token: ${{ secrets.REPO_ACCESS }}
-          artifacts: ./build/*
+          artifacts: release.zip
           allowUpdates: true
           replacesArtifacts: true
