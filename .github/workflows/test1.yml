@@ -1,53 +1,33 @@
-name: Bump version on push to main
-
+name: Automated Version Bump and Commit
 on:
   push:
     branches:
-      - main
+      - main # change this to the default branch name of your repository
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
-    - name: Bump version in public/manifest.json
-      run: |
-        # Install jq to manipulate JSON
-        sudo apt-get install jq
+      - name: Automated Version Bump
+        uses: phips28/gh-action-bump-version@v10.0.1
+        env:
+          GITHUB_TOKEN: "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"
+          # You can configure more options here based on your needs
+          # Refer to the documentation for more information
 
-        # Read current version from manifest.json
-        VERSION=$(jq -r .version public/manifest.json)
+      - name: Create local changes
+        run: |
+          # Add the changes you want to make here
 
-        # Split version into array
-        IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
-
-        # Increment patch version
-        VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
-
-        # If patch version is 10, increment minor version and set patch version to 0
-        if [ ${VERSION_PARTS[2]} == 10 ]
-        then
-          VERSION_PARTS[1]=$((VERSION_PARTS[1] + 1))
-          VERSION_PARTS[2]=0
-        fi
-
-        # If minor version is 10, increment major version and set minor and patch versions to 0
-        if [ ${VERSION_PARTS[1]} == 10 ]
-        then
-          VERSION_PARTS[0]=$((VERSION_PARTS[0] + 1))
-          VERSION_PARTS[1]=0
-          VERSION_PARTS[2]=0
-        fi
-
-        # Join version back into string
-        NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
-
-        # Update version in manifest.json
-        jq '.version = "'$NEW_VERSION'"' public/manifest.json > "tmp.json" && mv "tmp.json" "public/manifest.json"
-
-    - name: Commit and push if it changed
-      uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: Bump version
+      - name: Commit & Push changes
+        uses: Andro999b/push@v1.3
+        with:
+          github_token: "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"
+          # You can configure more options here based on your needs
+          # Refer to the documentation for more information
