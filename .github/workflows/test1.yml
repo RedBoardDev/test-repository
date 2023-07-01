@@ -1,33 +1,25 @@
-name: Automated Version Bump and Commit
+name: Bump version and push changes
+
 on:
   push:
-    branches:
-      - main # change this to the default branch name of your repository
+    branches: [ master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Automated Version Bump
+      uses: phips28/gh-action-bump-version@v10.0.1
+      env:
+        GITHUB_TOKEN: "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"
         with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Automated Version Bump
-        uses: phips28/gh-action-bump-version@v10.0.1
-        env:
-          GITHUB_TOKEN: "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"
-          # You can configure more options here based on your needs
-          # Refer to the documentation for more information
-
-      - name: Create local changes
-        run: |
-          # Add the changes you want to make here
-
-      - name: Commit & Push changes
-        uses: Andro999b/push@v1.3
-        with:
-          github_token: "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"
-          # You can configure more options here based on your needs
-          # Refer to the documentation for more information
+          path: './public/manifest.json' # Ajout du chemin vers le fichier
+    - name: Commit & Push changes
+      uses: Smart-Transportation/push@v1.3
+      with:
+        github_token: "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"
+        # Ajout du chemin vers le fichier dans le répertoire
+        directory: 'public'
+        # Ajout d'autres paramètres si nécessaire
