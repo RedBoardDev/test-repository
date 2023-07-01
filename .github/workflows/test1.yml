@@ -42,4 +42,4 @@ jobs:
           draft: false
           prerelease: false
           # An optional tag for the release. If this is omitted the git ref will be used (if it is a tag).
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: "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"
