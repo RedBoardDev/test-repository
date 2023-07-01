@@ -1,0 +1,23 @@
+name: Modify Version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  modify_version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Increment Version
+        id: increment_version
+        uses: jwalton/semver-action@v0.5.0
+        with:
+          version: ${{ steps.get_version.outputs.version }}
+          increment: patch
+
+      - name: Update Version
+        run: |
+          sed -i 's/"version": "[0-9]\+\.[0-9]\+\.[0-9]\+"/"version": "${{ steps.increment_version.outputs.version }}"/' public/manifest.json
