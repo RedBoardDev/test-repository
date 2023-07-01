@@ -22,10 +22,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Create release zip
-        uses: ncipollo/release-zip-action@v2
-        with:
-          files: build/
-          outputFileName: release.zip
+        run: zip -r release.zip build/
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
         with:
