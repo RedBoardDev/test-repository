@@ -28,12 +28,12 @@ jobs:
           path: build/
       - name: Get version
         id: version
-        run: echo "::set-output name=version::$(node -p 'require("./build/manifest.json").version')"
+        run: echo "::set-output name=version::$(node -p 'require("./public/manifest.json").version')"
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          body: "Changelog: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.prop }}"
-          tag: ${{ steps.version.outputs.prop }}
+          body: "Changelog: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.version }}"
+          tag: ${{ steps.version.outputs.version }}
           token: "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"
           artifacts: build/
           allowUpdates: true
