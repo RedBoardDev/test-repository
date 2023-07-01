@@ -1,42 +1,44 @@
-name: autorelease
+name: Update Manifest Version
+
 on:
   push:
     branches:
       - main
 
 jobs:
-  push:
-    name: Push Container
+  update_version:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v2
-        with:
-          fetch-depth: '0'
-      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-      - name: autochangelog-action
-        id: ac
-        uses: rubenfiszel/autochangelog-action@v0.16.0
-        with:
-          changelog_file: './CHANGELOG.md'
-          manifest_file: './pulic/manifest.yaml'
-          dry_run: false
-          issues_url_prefix: 'https://github.com/org/repo/issues/'
-          tag_prefix: 'v'
-      - name: Create Pull Request
-        id: cpr
-        uses: peter-evans/create-pull-request@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'Update changelog and manifest'
-          title: 'ci: release ${{ steps.ac.outputs.version }}'
-          body: |
-            Release [${{ steps.ac.outputs.version }}](https://github.com/org/repo/releases/tag/v${{ steps.ac.outputs.version }})
-          labels: autorelease
-          branch: automatic-release-prs
-          reviewers: your-reviewers-list
-      - name: Check outputs
+
+      - name: Get current version
+        id: get_version
+        run: echo "::set-output name=current_version::$(jq -r '.version' public/manifest.json)"
+
+      - name: Increment version
+        id: increment_version
         run: |
-          echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
-          echo "Pull Request Number - ${{ steps.cpr.outputs.pr_number }}"
-          # An optional tag for the release. If this is omitted the git ref will be used (if it is a tag).
+          current_version="${{ steps.get_version.outputs.current_version }}"
+          major=$(echo $current_version | cut -d'.' -f1)
+          minor=$(echo $current_version | cut -d'.' -f2)
+          patch=$(echo $current_version | cut -d'.' -f3)
+          next_version="$((major + 1)).0.0"
+          echo "::set-output name=next_version::$next_version"
+
+      - name: Update manifest version
+        run: |
+          next_version="${{ steps.increment_version.outputs.next_version }}"
+          jq --arg new_version "$next_version" '.version = $new_version' public/manifest.json > tmp_manifest.json
+          mv tmp_manifest.json public/manifest.json
+
+      - name: Commit and push changes
+        uses: EndBug/add-and-commit@v7
+        with:
+          author_name: "GitHub Actions"
+          author_email: "actions@github.com"
+          message: "Bump up manifest version to ${{ steps.increment_version.outputs.next_version }}"
+          add: "public/manifest.json"
+          force: true
+          push: true
