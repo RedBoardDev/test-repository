@@ -16,7 +16,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14' # Choose the version of Node.js you want to use
+          node-version: '14' # Choisissez la version de Node.js que vous souhaitez utiliser
       - name: Install dependencies
         run: npm install
       - name: Build
@@ -28,15 +28,12 @@ jobs:
           path: build/
       - name: Get version
         id: version
-        uses: notiz-dev/github-action-json-property@release
-        with:
-          path: 'build/manifest.json'
-          prop_path: 'version'
+        run: echo "::set-output name=version::$(node -p 'require("./build/manifest.json").version')"
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          body: "Changelog: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.prop }}"
-          tag: ${{ steps.version.outputs.prop }}
+          body: "Changelog: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.version }}"
+          tag: ${{ steps.version.outputs.version }}
           token: ${{ secrets.REPO_ACCESS }}
           artifacts: build/
           allowUpdates: true
