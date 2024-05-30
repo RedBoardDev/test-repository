@@ -1,12 +1,14 @@
 name: Release
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - release
 
 jobs:
   release:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
@@ -45,7 +47,7 @@ jobs:
           release_name: Release ${{ env.VERSION }}
           body: |
             Changes in this release:
-            ${{ github.event.commits[0].message }}
+            ${{ github.event.pull_request.body }}
           draft: false
           prerelease: false
 
