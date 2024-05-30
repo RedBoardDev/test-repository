@@ -1,9 +1,9 @@
 name: Release
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - release
 
 jobs:
   release:
@@ -31,7 +31,9 @@ jobs:
         run: npm run build
 
       - name: Zip extension
-        run: zip -r extension.zip build/
+        run: |
+          cd build
+          zip -r ../extension.zip *
 
       - name: Create GitHub Release
         id: create_release
@@ -43,7 +45,7 @@ jobs:
           release_name: Release ${{ env.VERSION }}
           body: |
             Changes in this release:
-            ${{ github.event.pull_request.body }}
+            ${{ github.event.commits[0].message }}
           draft: false
           prerelease: false
 
