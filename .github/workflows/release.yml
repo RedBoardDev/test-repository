@@ -31,7 +31,7 @@ jobs:
         run: npm run build
 
       - name: Zip extension
-        run: zip -r extension.zip dist/
+        run: zip -r extension.zip build/
 
       - name: Create GitHub Release
         id: create_release
