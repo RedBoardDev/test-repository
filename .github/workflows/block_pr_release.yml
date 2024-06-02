@@ -17,12 +17,8 @@ jobs:
       - name: Close PR if not from main branch
         if: steps.check_branch.outputs.is_main != 'true'
         run: |
-          PR_NUMBER=$(echo "${{ github.event.pull_request.url }}" | cut -d'/' -f7)
-          MESSAGE="This pull request is not from the main branch and cannot be merged into the release branch. Please review the branch management policy: [Link to document]."
+          echo "This pull request is not from the main branch and cannot be merged into the release branch. Please review the branch management policy: [Link to document]."
           echo "Closing the pull request..."
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "{\"body\": \"$MESSAGE\"}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
-          gh pr close ${PR_NUMBER}
+          gh pr close ${GITHUB_REF}
+          echo "Adding comment to the pull request..."
+          gh pr comment ${GITHUB_REF} --body "This pull request is not from the main branch and has been automatically closed. Please review the branch management policy: [Link to document]."
