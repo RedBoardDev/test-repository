@@ -23,10 +23,23 @@ jobs:
         run: npm install
 
       - name: Get version from package.json
-        id: get_version
+        id: get_package_version
         run: |
-          NEW_VERSION=$(node -p -e "require('./package.json').version")
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          PACKAGE_VERSION=$(node -p -e "require('./package.json').version")
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+
+      - name: Get version from manifest.json
+        id: get_manifest_version
+        run: |
+          MANIFEST_VERSION=$(jq -r .version public/manifest.json)
+          echo "MANIFEST_VERSION=$MANIFEST_VERSION" >> $GITHUB_ENV
+
+      - name: Ensure versions match
+        run: |
+          if [ "$PACKAGE_VERSION" != "$MANIFEST_VERSION" ]; then
+            echo "Error: package.json version ($PACKAGE_VERSION) does not match manifest.json version ($MANIFEST_VERSION)."
+            exit 1
+          fi
 
       - name: Get latest release version
         id: get_latest_release
@@ -36,9 +49,9 @@ jobs:
 
       - name: Check version
         run: |
-          echo "New version: $NEW_VERSION"
+          echo "New version: $PACKAGE_VERSION"
           echo "Latest release version: $LATEST_VERSION"
-          if [ "$(printf '%s\n' "$NEW_VERSION" "$LATEST_VERSION" | sort -V | head -n1)" = "$NEW_VERSION" ]; then
-            echo "Error: New version ($NEW_VERSION) is not greater than the latest release version ($LATEST_VERSION)."
+          if [ "$(printf '%s\n' "$PACKAGE_VERSION" "$LATEST_VERSION" | sort -V | head -n1)" = "$PACKAGE_VERSION" ]; then
+            echo "Error: New version ($PACKAGE_VERSION) is not greater than the latest release version ($LATEST_VERSION)."
             exit 1
           fi
