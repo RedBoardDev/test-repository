@@ -11,14 +11,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
       - name: Check if PR is from main branch
         id: check_branch
-        run: echo ::set-output name=is_main::$(echo "${{ github.event.pull_request.head.ref }}" == "main")
+        run: |
+          if [[ "${{ github.event.pull_request.head.ref }}" == "main" ]]; then
+            echo "is_main=true" >> $GITHUB_ENV
+          else
+            echo "is_main=false" >> $GITHUB_ENV
 
       - name: Close Pull Request if not from main
-        if: steps.check_branch.outputs.is_main != 'true'
+        if: env.is_main != 'true'
         run: |
-          pr_number=$(echo "${{ github.event.pull_request.number }}")
+          pr_number=${{ github.event.pull_request.number }}
           gh pr close $pr_number --comment "This pull request is not from the main branch and has been automatically closed. Please review the branch management policy: [Link to document]."
         env:
           GH_TOKEN: ${{ secrets.REPO_ACCESS }}
