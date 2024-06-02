@@ -1,4 +1,4 @@
-name: Block PRs to release from non-main branches
+name: Check PR Branch
 
 on:
   pull_request:
@@ -6,13 +6,23 @@ on:
       - release
 
 jobs:
-  block-pr:
+  check-pr-branch:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check if PR source branch is not main
+      - name: Check if PR is from main branch
+        id: check_branch
+        run: echo ::set-output name=is_main::$(echo "${{ github.event.pull_request.base.ref }}" == "main")
+
+      - name: Close PR if not from main branch
+        if: steps.check_branch.outputs.is_main != 'true'
         run: |
-          SOURCE_BRANCH=$(jq -r .pull_request.head.ref "$GITHUB_EVENT_PATH")
-          if [ "$SOURCE_BRANCH" != "main" ]; then
-            echo "::error::Pull requests to 'release' branch from non-main branches are not allowed. Please refer to the PR guidelines."
-            exit 1
-          fi
+          PR_NUMBER=$(echo "${{ github.event.pull_request.url }}" | cut -d'/' -f7)
+          MESSAGE="This pull request is not from the main branch and cannot be merged into the release branch. Please review the branch management policy: [Link to document]."
+          echo "Closing the pull request..."
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\": \"$MESSAGE\"}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+          gh pr close ${PR_NUMBER}
