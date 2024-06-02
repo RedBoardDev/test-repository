@@ -1,10 +1,8 @@
-name: Close PR on Open
+name: Close PR from incorrect branch
 
 on:
   pull_request:
-    types: [opened]
-    # branches:
-    #   - release
+    types: [opened, reopened]
 
 jobs:
   close_pr:
@@ -14,7 +12,13 @@ jobs:
     - name: Check out the repository
       uses: actions/checkout@v2
 
+    - name: Get the source branch name
+      id: get_branch
+      run: |
+        echo "source_branch=$(echo ${{ github.event.pull_request.head.ref }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
     - name: Close the PR with a comment
+      if: env.source_branch != 'main'
       run: |
         gh pr comment ${{ github.event.pull_request.number }} --body "This pull request is not from the main branch and has been automatically closed. Please review the branch management policy."
         gh pr close ${{ github.event.pull_request.number }}
