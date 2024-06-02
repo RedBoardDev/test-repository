@@ -1,24 +1,39 @@
-name: Check PR Branch
+name: Close PR if not from main branch
 
 on:
   pull_request:
-    branches:
-      - release
+    types: [opened, synchronize]
 
 jobs:
-  check-pr-branch:
+  close-pr:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check if PR is from main branch
-        id: check_branch
-        run: echo ::set-output name=is_main::$(echo "${{ github.event.pull_request.base.ref }}" == "main")
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
-      - name: Close PR if not from main branch
-        if: steps.check_branch.outputs.is_main != 'true'
-        run: |
-          echo "This pull request is not from the main branch and cannot be merged into the release branch. Please review the branch management policy: [Link to document]."
-          echo "Closing the pull request..."
-          gh pr close ${GITHUB_REF}
-          echo "Adding comment to the pull request..."
-          gh pr comment ${GITHUB_REF} --body "This pull request is not from the main branch and has been automatically closed. Please review the branch management policy: [Link to document]."
+    - name: Get PR base branch
+      id: get-base-branch
+      run: |
+        echo ::set-output name=base_branch::$(git rev-parse --abbrev-ref HEAD)
+
+    - name: Close PR if not from main branch
+      if: ${{ github.base_ref != 'main' && steps.get-base-branch.outputs.base_branch != 'main' }}
+      uses: actions/github-script@v5
+      with:
+        script: |
+          const message = 'This PR will be closed automatically because it is not from the main branch.'
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: message
+          })
+          await github.rest.issues.update({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'closed'
+          })
