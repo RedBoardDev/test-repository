@@ -9,31 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Get PR base branch
-      id: get-base-branch
-      run: |
-        echo ::set-output name=base_branch::$(git rev-parse --abbrev-ref HEAD)
-
-    - name: Close PR if not from main branch
-      if: ${{ github.base_ref != 'main' && steps.get-base-branch.outputs.base_branch != 'main' }}
-      uses: actions/github-script@v5
-      with:
-        script: |
-          const message = 'This PR will be closed automatically because it is not from the main branch.'
-          await github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: message
-          })
-          await github.rest.issues.update({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            state: 'closed'
-          })
+    - name: Close Pull
+      run: gh pr close --comment "Auto-closing pull request"
+      env:
+        GH_TOKEN: ${{ secrets.REPO_ACCESS }}
