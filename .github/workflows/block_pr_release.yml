@@ -21,6 +21,7 @@ jobs:
             echo "is_main=true" >> $GITHUB_ENV
           else
             echo "is_main=false" >> $GITHUB_ENV
+          fi
 
       - name: Close Pull Request if not from main
         if: env.is_main != 'true'
@@ -28,4 +29,4 @@ jobs:
           pr_number=${{ github.event.pull_request.number }}
           gh pr close $pr_number --comment "This pull request is not from the main branch and has been automatically closed. Please review the branch management policy: [Link to document]."
         env:
-          GH_TOKEN: ${{ secrets.REPO_ACCESS }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
