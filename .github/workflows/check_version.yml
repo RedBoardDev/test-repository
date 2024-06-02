@@ -1,4 +1,4 @@
-name: Check Version
+name: Version Check
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  check_version:
+  version-check:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,29 +24,20 @@ jobs:
       - name: Get version from package.json
         id: get_version
         run: |
-          VERSION=$(node -p -e "require('./package.json').version")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          NEW_VERSION=$(node -p -e "require('./package.json').version")
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
-      - name: Get latest release tag
+      - name: Get latest release version
         id: get_latest_release
-        uses: actions/github-script@v3
-        with:
-          script: |
-            const latestRelease = await github.rest.repos.getLatestRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-            return latestRelease.data.tag_name;
-
-      - name: Check if version is higher
-        id: check_version
         run: |
-          LATEST_RELEASE=${{ steps.get_latest_release.outputs.result }}
-          CURRENT_VERSION=${{ env.VERSION }}
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          echo "LATEST_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
 
-          if [ "$(printf '%s\n' "$LATEST_RELEASE" "$CURRENT_VERSION" | sort -V | head -n1)" = "$CURRENT_VERSION" ]; then
-            echo "Error: Current version ($CURRENT_VERSION) is not greater than the latest release version ($LATEST_RELEASE)."
+      - name: Check version
+        run: |
+          echo "New version: $NEW_VERSION"
+          echo "Latest release version: $LATEST_VERSION"
+          if [ "$(printf '%s\n' "$NEW_VERSION" "$LATEST_VERSION" | sort -V | head -n1)" = "$NEW_VERSION" ]; then
+            echo "Error: New version ($NEW_VERSION) is not greater than the latest release version ($LATEST_VERSION)."
             exit 1
-          else
-            echo "Current version ($CURRENT_VERSION) is greater than the latest release version ($LATEST_RELEASE)."
           fi
