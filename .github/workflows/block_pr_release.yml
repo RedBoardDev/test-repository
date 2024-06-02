@@ -3,6 +3,8 @@ name: Close PR on Open
 on:
   pull_request:
     types: [opened]
+    # branches:
+    #   - release
 
 jobs:
   close_pr:
@@ -14,7 +16,7 @@ jobs:
 
     - name: Close the PR with a comment
       run: |
-        gh pr comment ${{ github.event.pull_request.number }} --body "This PR is being closed automatically."
+        gh pr comment ${{ github.event.pull_request.number }} --body "This pull request is not from the main branch and has been automatically closed. Please review the branch management policy."
         gh pr close ${{ github.event.pull_request.number }}
       env:
         GITHUB_TOKEN: ${{ secrets.REPO_ACCESS }}
