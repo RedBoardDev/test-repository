@@ -1,10 +1,10 @@
 name: Version Check
 
 on:
-  pull_request:
+  pull_request_review:
+    types: [submitted]
     branches:
       - main
-      - release
 
 jobs:
   version-check:
